@@ -3,10 +3,29 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 
 from .config import Settings
 from .logging_setup import configure_logging, install_exception_hooks
+
+
+def _fix_std_streams() -> None:
+    """Make stdout/stderr safe to write to on Windows.
+
+    A GUI launcher (pythonw / ``second-brain.exe``) has no console, so both are ``None`` and
+    any library progress bar (e.g. the faster-whisper model download) crashes. Redirected
+    output uses the ANSI code page (cp1252), which cannot encode many note titles.
+    """
+    for name in ("stdout", "stderr"):
+        stream = getattr(sys, name)
+        if stream is None:
+            setattr(sys, name, open(os.devnull, "w", encoding="utf-8"))  # noqa: SIM115
+        elif hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(errors="backslashreplace")
+            except (OSError, ValueError):
+                pass
 
 
 def _cli_rebuild(vault_path: str, embed: bool) -> int:
@@ -41,6 +60,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     rebuild.add_argument("--vault", default=argparse.SUPPRESS, help="vault folder to rebuild")
     rebuild.add_argument("--no-embed", action="store_true", help="skip Ollama embeddings")
+    _fix_std_streams()
     args = parser.parse_args(argv)
 
     configure_logging()
