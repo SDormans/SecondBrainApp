@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.python-version
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Qt / PySide6
+*.qmlc
+*.jsc
+*.pro.user
+*.autosave
+rc_*.py
+ui_*.py
+
+# PyInstaller
+*.spec
+
+# IDEs / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Local data (never commit a personal vault or its index)
+/vault/
+*.db
+*.db-wal
+*.db-shm
+*.log
+models/
