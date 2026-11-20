@@ -65,3 +65,20 @@ def test_cli_rebuild_index(tmp_path, capsys):
     vault.create_note("Two", "y")
     assert main(["rebuild-index", "--vault", str(vault.root), "--no-embed"]) == 0
     assert "Indexed 2 notes" in capsys.readouterr().out
+
+
+def test_fix_std_streams_handles_missing_and_narrow_streams(monkeypatch):
+    import io
+    import sys
+
+    from second_brain.__main__ import _fix_std_streams
+
+    narrow = io.TextIOWrapper(io.BytesIO(), encoding="cp1252")
+    monkeypatch.setattr(sys, "stdout", narrow)
+    monkeypatch.setattr(sys, "stderr", None)
+    _fix_std_streams()
+    print("Brain \U0001f9e0 日本語")
+    sys.stderr.write("progress bar\n")
+    sys.stdout.flush()
+    assert rb"Brain \U0001f9e0" in narrow.buffer.getvalue()
+    sys.stderr.close()
