@@ -43,11 +43,15 @@ FRONTMATTER_FIELDS = (
     "status",
 )
 
-_FRONTMATTER_RE = re.compile(r"\A---[ \t]*\r?\n(.*?)^---[ \t]*(?:\r?\n|\Z)", re.DOTALL | re.MULTILINE)
+_FRONTMATTER_RE = re.compile(
+    r"\A---[ \t]*\r?\n(.*?)^---[ \t]*(?:\r?\n|\Z)", re.DOTALL | re.MULTILINE
+)
 _HEADING_RE = re.compile(r"^#\s+(.+?)\s*#*\s*$", re.MULTILINE)
-_WINDOWS_RESERVED = {"con", "prn", "aux", "nul"} | {f"com{i}" for i in range(1, 10)} | {
-    f"lpt{i}" for i in range(1, 10)
-}
+_WINDOWS_RESERVED = (
+    {"con", "prn", "aux", "nul"}
+    | {f"com{i}" for i in range(1, 10)}
+    | {f"lpt{i}" for i in range(1, 10)}
+)
 
 
 def now_iso() -> str:
@@ -113,7 +117,7 @@ class Note:
     tags: list[str] = field(default_factory=list)
     status: str = NoteStatus.INBOX.value
     extra: dict[str, Any] = field(default_factory=dict)
-    """Unknown frontmatter keys, preserved verbatim so later features (and other tools) keep data."""
+    """Unknown frontmatter keys, preserved verbatim so later features and other tools keep data."""
     path: Path | None = field(default=None, compare=False)
 
     @classmethod

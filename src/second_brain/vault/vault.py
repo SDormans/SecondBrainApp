@@ -81,15 +81,21 @@ class Vault:
             vault.root.mkdir(parents=True)
         if not vault.root.is_dir():
             raise VaultError(f"Not a folder: {vault.root}")
-        for folder in (vault.meta_dir, vault.log_dir, vault.notes_dir, vault.attachments_dir,
-                       vault.import_dir):
+        for folder in (
+            vault.meta_dir,
+            vault.log_dir,
+            vault.notes_dir,
+            vault.attachments_dir,
+            vault.import_dir,
+        ):
             folder.mkdir(parents=True, exist_ok=True)
         marker = vault.meta_dir / "vault.json"
         if not marker.exists():
             atomic_write_text(
                 marker,
-                json.dumps({"format_version": VAULT_FORMAT_VERSION, "created_at": now_iso()},
-                           indent=2),
+                json.dumps(
+                    {"format_version": VAULT_FORMAT_VERSION, "created_at": now_iso()}, indent=2
+                ),
             )
         return vault
 
@@ -103,13 +109,16 @@ class Vault:
         except ValueError:
             return False
         # Hidden folders (.secondbrain, .git, .obsidian, ...) and the drop folder are not notes.
-        return not any(part.startswith(".") for part in rel.parts) and rel.parts[0] != self.IMPORT_DIR
+        return (
+            not any(part.startswith(".") for part in rel.parts) and rel.parts[0] != self.IMPORT_DIR
+        )
 
     def iter_note_paths(self) -> Iterator[Path]:
         for dirpath, dirnames, filenames in os.walk(self.root):
             current = Path(dirpath)
             dirnames[:] = sorted(
-                d for d in dirnames
+                d
+                for d in dirnames
                 if not d.startswith(".") and not (current == self.root and d == self.IMPORT_DIR)
             )
             for name in sorted(filenames):
@@ -208,7 +217,7 @@ class Vault:
 
     # ----------------------------------------------------------------- export
     def export_zip(self, destination: Path, include_meta: bool = False) -> Path:
-        """Write the vault to a zip archive. The index is rebuildable so it is skipped by default."""
+        """Write the vault to a zip archive (the rebuildable index is skipped by default)."""
         destination = Path(destination).resolve()
         destination.parent.mkdir(parents=True, exist_ok=True)
         fd, tmp_name = tempfile.mkstemp(dir=destination.parent, prefix=".export-", suffix=".tmp")
