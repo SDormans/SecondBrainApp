@@ -8,7 +8,9 @@ hard-coded colours.
 
 from __future__ import annotations
 
+import atexit
 import logging
+import shutil
 import tempfile
 from dataclasses import dataclass
 from enum import StrEnum
@@ -159,6 +161,7 @@ def _icons(t: Theme) -> dict[str, str]:
     global _icon_root
     if _icon_root is None:
         _icon_root = Path(tempfile.mkdtemp(prefix="second-brain-theme-"))
+        atexit.register(shutil.rmtree, _icon_root, ignore_errors=True)
     folder = _icon_root / t.name
     folder.mkdir(exist_ok=True)
     shapes = {
