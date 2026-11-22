@@ -35,6 +35,7 @@ from ..vault.vault import ConflictError
 from .dialogs import CaptureDialog, SettingsDialog
 from .editor import NoteEditor
 from .tasks import TaskRunner, UiInvoker
+from .theme import apply_theme
 
 log = logging.getLogger(__name__)
 
@@ -571,6 +572,8 @@ class MainWindow(QMainWindow):
         dialog.rebuild_requested.connect(self.rebuild_index)
         if dialog.exec():
             new = dialog.result_settings()
+            if new.theme != self.core.settings.theme:
+                apply_theme(QApplication.instance(), new.theme)
             vault_changed = new.vault_path and (
                 self.core.vault is None or Path(new.vault_path).resolve() != self.core.vault.root
             )

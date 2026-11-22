@@ -47,6 +47,10 @@ class Settings:
     cloud_ai_enabled: bool = False
     """Cloud AI is opt-in and OFF by default; no cloud provider ships in v1."""
 
+    # Appearance
+    theme: str = "system"
+    """"system" follows the Windows light/dark setting; or "light" / "dark"."""
+
     # Capture
     fetch_url_content: bool = True
     copy_imported_files: bool = True

@@ -30,6 +30,7 @@ from PySide6.QtWidgets import (
 
 from ..vault.links import WIKILINK_RE, target_from_url, wikilinks_to_markdown
 from ..vault.note import Note, NoteStatus, normalize_tags
+from .theme import current_theme
 
 _OPEN_LINK_RE = re.compile(r"\[\[([^\[\]\n|#]*)$")
 
@@ -38,7 +39,6 @@ class MarkdownHighlighter(QSyntaxHighlighter):
     def __init__(self, document):
         super().__init__(document)
         self._link = QTextCharFormat()
-        self._link.setForeground(QColor("#2a6fdb"))
         self._link.setFontUnderline(True)
         self._heading = QTextCharFormat()
         self._heading.setFontWeight(QFont.Weight.Bold)
@@ -46,6 +46,7 @@ class MarkdownHighlighter(QSyntaxHighlighter):
     def highlightBlock(self, text: str) -> None:
         if text.startswith("#"):
             self.setFormat(0, len(text), self._heading)
+        self._link.setForeground(QColor(current_theme().link))
         for match in WIKILINK_RE.finditer(text):
             self.setFormat(match.start(), match.end() - match.start(), self._link)
 
@@ -117,7 +118,7 @@ class NoteEditor(QWidget):
         self._loading = False
 
         self.title = QLineEdit(placeholderText="Title")
-        self.title.setFont(QFont(self.title.font().family(), 14, QFont.Weight.Bold))
+        self.title.setObjectName("noteTitle")
         self.tags = QLineEdit(placeholderText="tags, comma separated")
         self.status = QComboBox()
         self.status.addItems([s.value for s in NoteStatus])
@@ -125,6 +126,7 @@ class NoteEditor(QWidget):
             openExternalLinks=True,
             textInteractionFlags=(Qt.TextInteractionFlag.TextBrowserInteraction),
         )
+        self.source.setProperty("role", "muted")
         self.body = MarkdownEdit()
         self.preview = QTextBrowser(openLinks=False)
         self.preview.anchorClicked.connect(self._on_anchor)
