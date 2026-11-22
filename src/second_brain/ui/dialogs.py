@@ -7,6 +7,7 @@ from dataclasses import replace
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QCheckBox,
+    QComboBox,
     QDialog,
     QDialogButtonBox,
     QDoubleSpinBox,
@@ -24,6 +25,7 @@ from PySide6.QtWidgets import (
 
 from ..ai.ollama import OllamaClient, OllamaError
 from ..config import Settings
+from .theme import ThemeMode
 
 
 class SettingsDialog(QDialog):
@@ -70,8 +72,16 @@ class SettingsDialog(QDialog):
         self.whisper_device = QLineEdit(settings.whisper_device)
         self.whisper_compute = QLineEdit(settings.whisper_compute_type)
 
+        self.theme = QComboBox()
+        for mode in ThemeMode:
+            self.theme.addItem(mode.value.capitalize(), mode.value)
+        index = self.theme.findData(settings.theme)
+        self.theme.setCurrentIndex(max(index, 0))
+
         general = QFormLayout()
         general.addRow("Vault folder", vault_row)
+        appearance = QFormLayout()
+        appearance.addRow("Theme", self.theme)
         ai = QFormLayout()
         ai.addRow("Ollama endpoint", self.ollama_url)
         ai.addRow("Text model", self.text_model)
@@ -98,7 +108,13 @@ class SettingsDialog(QDialog):
         buttons.rejected.connect(self.reject)
 
         layout = QVBoxLayout(self)
-        for title, form in (("Vault", general), ("AI", ai), ("Capture", capture)):
+        sections = (
+            ("Vault", general),
+            ("Appearance", appearance),
+            ("AI", ai),
+            ("Capture", capture),
+        )
+        for title, form in sections:
             box = QGroupBox(title)
             box.setLayout(form)
             layout.addWidget(box)
@@ -144,6 +160,7 @@ class SettingsDialog(QDialog):
             semantic_search_enabled=self.semantic.isChecked(),
             cloud_ai_enabled=self.cloud.isChecked(),
             fetch_url_content=self.fetch_urls.isChecked(),
+            theme=self.theme.currentData(),
             whisper_model=self.whisper_model.text().strip() or "large-v3",
             whisper_device=self.whisper_device.text().strip() or "cuda",
             whisper_compute_type=self.whisper_compute.text().strip() or "float16",

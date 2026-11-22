@@ -88,7 +88,7 @@ the first `# heading` or the filename).
 | `second_brain/index/` | `IndexStore` (SQLite FTS5 + sqlite-vec), `Indexer` (`rebuild_index`, incremental sync), filesystem watcher |
 | `second_brain/search/` | Keyword (FTS5, safe query building) and semantic search with fallback |
 | `second_brain/ai/` | Ollama client/embedder, `Assistant` (summary, tag and link suggestions), provider selection |
-| `second_brain/ui/` | PySide6 main window, editor, dialogs, background tasks |
+| `second_brain/ui/` | PySide6 main window, editor, dialogs, background tasks; `theme.py` holds the light/dark design tokens (from the Lovable/shadcn "slate" palette) and the Qt stylesheet |
 | `second_brain/core.py` | `AppCore`: owns one open vault and wires the layers together (UI-independent) |
 | `second_brain/config.py` | Per-user settings in `%APPDATA%\SecondBrain\settings.json` |
 
