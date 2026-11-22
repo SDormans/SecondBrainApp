@@ -52,3 +52,39 @@ def test_settings_default_and_dialog_round_trip(qtbot):
     assert dialog.result_settings().theme == "dark"
     dialog.theme.setCurrentIndex(dialog.theme.findData("light"))
     assert dialog.result_settings().theme == "light"
+
+
+def test_wiki_link_color_follows_theme_change(qapp):
+    from PySide6.QtGui import QColor
+
+    from second_brain.ui.editor import MarkdownEdit
+
+    theme.apply_theme(qapp, "light")
+    edit = MarkdownEdit()
+    edit.setPlainText("see [[Other note]]")
+    edit.show()  # visible widgets receive the theme's change events synchronously
+
+    def link_color() -> str:
+        block = edit.document().firstBlock()
+        ranges = block.layout().formats()
+        return next(
+            r.format.foreground().color().name() for r in ranges if r.format.fontUnderline()
+        )
+
+    assert link_color() == QColor(theme.resolve_theme("light").link).name()
+    theme.apply_theme(qapp, "dark")
+    qapp.processEvents()
+    assert link_color() == QColor(theme.resolve_theme("dark").link).name()
+
+
+def test_theme_change_does_not_mark_note_dirty(qapp):
+    from second_brain.ui.editor import NoteEditor
+    from second_brain.vault.note import Note
+
+    theme.apply_theme(qapp, "light")
+    editor = NoteEditor()
+    editor.load(Note(id="a", title="A", body="see [[Other note]]"))
+    assert not editor.dirty
+    theme.apply_theme(qapp, "dark")
+    qapp.processEvents()
+    assert not editor.dirty

@@ -405,11 +405,12 @@ def apply_theme(app: QApplication, mode: str | ThemeMode = ThemeMode.SYSTEM) -> 
     except ValueError:
         mode = ThemeMode.SYSTEM
     theme = resolve_theme(mode)
+    # Set first: visible widgets get style/palette change events synchronously below.
+    _current = theme
     app.setStyle("Fusion")  # native Windows style ignores parts of the stylesheet
     app.setPalette(build_palette(theme))
     app.setStyleSheet(build_stylesheet(theme))
     app.setProperty("themeMode", mode.value)
-    _current = theme
 
     if not _follow_system_connected:
         hints = QGuiApplication.styleHints()

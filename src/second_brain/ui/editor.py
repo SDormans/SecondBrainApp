@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from PySide6.QtCore import QStringListModel, Qt, QUrl, Signal
+from PySide6.QtCore import QEvent, QStringListModel, Qt, QUrl, Signal
 from PySide6.QtGui import (
     QColor,
     QDesktopServices,
@@ -42,11 +42,23 @@ class MarkdownHighlighter(QSyntaxHighlighter):
         self._link.setFontUnderline(True)
         self._heading = QTextCharFormat()
         self._heading.setFontWeight(QFont.Weight.Bold)
+        self._link.setForeground(QColor(current_theme().link))
+
+    def refresh_theme(self, editor: QPlainTextEdit) -> None:
+        color = QColor(current_theme().link)
+        if color == self._link.foreground().color():
+            return
+        self._link.setForeground(color)
+        # Re-colouring is not an edit: keep the note from being marked dirty.
+        blocked = editor.blockSignals(True)
+        try:
+            self.rehighlight()
+        finally:
+            editor.blockSignals(blocked)
 
     def highlightBlock(self, text: str) -> None:
         if text.startswith("#"):
             self.setFormat(0, len(text), self._heading)
-        self._link.setForeground(QColor(current_theme().link))
         for match in WIKILINK_RE.finditer(text):
             self.setFormat(match.start(), match.end() - match.start(), self._link)
 
@@ -64,7 +76,13 @@ class MarkdownEdit(QPlainTextEdit):
         self.completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.completer.setFilterMode(Qt.MatchFlag.MatchContains)
         self.completer.activated.connect(self._insert_completion)
-        MarkdownHighlighter(self.document())
+        self._highlighter = MarkdownHighlighter(self.document())
+
+    def changeEvent(self, event: QEvent) -> None:
+        super().changeEvent(event)
+        highlighter = getattr(self, "_highlighter", None)
+        if highlighter and event.type() in (QEvent.Type.PaletteChange, QEvent.Type.StyleChange):
+            highlighter.refresh_theme(self)
 
     def set_titles(self, titles: list[str]) -> None:
         self._titles.setStringList(titles)
