@@ -62,6 +62,7 @@ def test_wiki_link_color_follows_theme_change(qapp):
     theme.apply_theme(qapp, "light")
     edit = MarkdownEdit()
     edit.setPlainText("see [[Other note]]")
+    edit.show()  # visible widgets receive the theme's change events synchronously
 
     def link_color() -> str:
         block = edit.document().firstBlock()
